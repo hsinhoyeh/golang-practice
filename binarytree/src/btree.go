@@ -78,7 +78,7 @@ func PrintTree(r *Node) {
             }
             //The position in the map is the number of white space we want to print
             indent := m[bt.val]
-            for i:=0; i < indent - preindent; i++ {
+            for i:=0; i < indent - preindent -1; i++ {
                 fmt.Print(",")
             }
             fmt.Print(fmt.Sprintf("%c",bt.val))
