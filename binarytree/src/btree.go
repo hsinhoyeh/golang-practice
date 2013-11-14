@@ -39,113 +39,70 @@ func NewBinaryTree(pre, in []Value) *Node {
 
     if pre == nil || len(pre) ==0 {
         return nil
+    }
+    root := new(Node)
+    root.val = pre[0]
+    pos := stringInSlice(root.val, in)
+    if pos < 0 {
+        root.left = nil
+        root.right = nil
     } else {
-        root := new(Node)
-        root.val = pre[0]
-        pos := stringInSlice(root.val, in)
-        if pos < 0 {
-            root.left = nil
-            root.right = nil
-        } else {
-            root.left = NewBinaryTree(pre[1:pos+1], in[:pos])
-            root.right = NewBinaryTree(pre[pos+1:], in[pos+1:])
-        }
-        return root
+        root.left = NewBinaryTree(pre[1:pos+1], in[:pos])
+        root.right = NewBinaryTree(pre[pos+1:], in[pos+1:])
     }
-}
-
-func DepthMost(r *Node, depth int) int {
-    if r == nil {
-        return depth
-    }
-    if r.left == nil && r.right == nil {
-        return depth
-    } else {
-        return MaxInt(DepthMost(r.left, depth +1), DepthMost(r.right, depth+1))
-    }
-}
-
-func LeftDepthMost(r *Node, lcnt int) int {
-    if r.left == nil {
-        return lcnt
-    } else {
-        return LeftDepthMost(r.left, lcnt +1)
-    }
-}
-
-func MaxInt(x, y int) int {
-    if x > y {
-        return x
-    } else{
-        return y
-    }
-}
-
-func IndentBase(x, y int) int {
-    return x 
-}
-
-func IndentNum(base, position int) int {
-    //TODO: this array should be made in static
-    arr := make([]int, position)
-    arr[0] = 1
-    for i:=1; i< position; i++ {
-        arr[i] = arr[i-1] + IndentBase(base, i)
-    }
-    return arr[position-1]
+    return root
 }
 
 // PrintTree prints the nodes of binary tree with proper indentation and level.
 func PrintTree(r *Node) {
-    var treeBNBuffer *list.List
+    m := make(map[Value]int)
+    InOrder(r, m)
+
+    //do level-order traversal
     var treeBuffer *list.List
-    var indentBNBuffer *list.List
-    var indentBuffer *list.List
+    var treeBNBuffer *list.List
 
-    maxDepth := DepthMost(r, 0)
-    lDepth := LeftDepthMost(r, 0)
-    depth := maxDepth
     treeBNBuffer  =list.New()
-    indentBNBuffer =list.New()
-    if lDepth == 0{
-        //do not necessary shift the root
-        indentBNBuffer.PushBack(0)
-    } else{
-        indentBNBuffer.PushBack(IndentNum(2, maxDepth))
-    }
     treeBNBuffer.PushBack(r)
-
-    for true {
-        depth --
-        //do swap and reallocate list
+    var preindent int;
+    for true{
+        //We do double buffer here: all the child pointers in the backend buffer (named with BN)
+        //and then swap it when we go to a new iteration.
         treeBuffer = treeBNBuffer
-        indentBuffer = indentBNBuffer
-        treeBNBuffer  =list.New()
-        indentBNBuffer =list.New()
-
-        preindent := 0
-        for b, i := treeBuffer.Front(), indentBuffer.Front(); b != nil; b, i =b.Next(), i.Next(){
+        treeBNBuffer =list.New()
+        preindent =0
+        for b := treeBuffer.Front(); b != nil; b =b.Next(){
             bt := b.Value.(*Node)
-            it := i.Value.(int)
             if bt == nil {
                 continue
             }
-            
-            for i:=0; i < it - preindent; i++ {
+            //The position in the map is the number of white space we want to print
+            indent := m[bt.val]
+            for i:=0; i < indent - preindent; i++ {
                 fmt.Print(",")
             }
-            fmt.Print(fmt.Sprintf("%q",bt.val))
+            fmt.Print(fmt.Sprintf("%c",bt.val))
+            preindent = indent
             treeBNBuffer.PushBack(bt.left)
-            indentBNBuffer.PushBack( it - IndentBase(2, depth))
             treeBNBuffer.PushBack(bt.right)
-            indentBNBuffer.PushBack(it + IndentBase(2, depth))
-            preindent = it
         }
-        //newline
         fmt.Println()
+        //break when there is no more element
         if treeBNBuffer.Len() ==0 {
             break;
         }
+    }
+}
+
+
+//Build an map where key is the node.val and value is the position number
+func InOrder(r *Node, m map[Value] int) {
+    if r.left != nil{
+        InOrder(r.left, m)
+    }
+    m[r.val]=len(m)+1
+    if r.right != nil{
+        InOrder(r.right, m)
     }
 }
 

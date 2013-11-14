@@ -52,3 +52,4 @@ func PrintTree(r *Node) {
 func main() {
 PrintTree(NewBinaryTree([]Value("ABCDEFGHI"), []Value("ABCDEFGHI")))
 PrintTree(NewBinaryTree([]Value("FBADCEGIH"), []Value("ABCDEFGHI")))
+*/
